@@ -3,8 +3,6 @@
 
 from models.base_model import BaseModel
 import json
-from models.user import User
-
 
 
 class FileStorage:
@@ -17,49 +15,31 @@ class FileStorage:
     """
     __file_path = "file.json"
     __objects = {}
-        
 
-        def __init__(self):
-        """Initializes FileStorage instance"""
-        self.__file_path = "file.json"
-        self.__objects = {}
-
-    def all(self, cls=None):
-        """Returns a dictionary of all objects"""
-        if cls is None:
-            return self.__objects
-        else:
-            cls_name = cls.__name__
-            cls_objects = {}
-            for obj_id, obj in self.__objects.items():
-                if cls_name in obj_id:
-                    cls_objects[obj_id] = obj
-            return cls_objects
+    def all(self):
+        """Returns  __objects dictionary"""
+        return FileStorage.__objects
 
     def new(self, obj):
-        """Adds a new object to the __objects dictionary"""
-        self.__objects[obj.id] = obj
+        """Sets in __objects obj with key <obj_class_name>.id"""
+        key = "{}.{}".format(obj.__class__.__name__, obj.id)
+        FileStorage.__objects[key] = obj
 
     def save(self):
-        """Serializes __objects to JSON file"""
-        serialized_objs = {}
-        for obj_id, obj in self.__objects.items():
-            serialized_objs[obj_id] = obj.to_dict()
-        with open(self.__file_path, "w") as file:
-            json.dump(serialized_objs, file)
+        """Serializes __objects to the JSON file"""
+        obj_dict = FileStorage.__objects
+        py_obj = {key: value.to_dict() for key, value in obj_dict.items()}
+        with open(FileStorage.__file_path, 'w') as f:
+            json.dump(py_obj, f)
 
     def reload(self):
-        """Deserializes JSON file to __objects"""
+        """Deserialize the JSON file to __objects, if it exists"""
         try:
-            with open(self.__file_path, "r") as file:
-                deserialized_objs = json.load(file)
-                for obj_id, obj_data in deserialized_objs.items():
-                    class_name = obj_data["__class__"]
-                    obj_cls = globals()[class_name]
-                    if obj_cls == User:  # Check if the class is User
-                        obj = User(**obj_data)
-                    else:
-                        obj = obj_cls(**obj_data)
-                    self.__objects[obj_id] = obj
-        except FileNotFoundError: 
-             pass
+            with open(FileStorage.__file_path, 'r') as f:
+                py_obj = json.load(f)
+                for obj in py_obj.values():
+                    class_name = obj["__class__"]
+                    del obj["__class__"]
+                    self.new(eval(class_name)(**obj))
+        except FileNotFoundError:
+            pass
