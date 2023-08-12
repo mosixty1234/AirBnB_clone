@@ -1,23 +1,20 @@
 #!/usr/bin/python3
 
 """Defines the HBnB console."""
-
-import cmd
-from models.base_model import BaseModel
-from models.user import User
-from models import storage
-
+    import cmd
+    from models.base_model import BaseModel
+    from models.user import User
+    from models.state import State
+    from models.city import City
+    from models.amenity import Amenity
+    from models.place import Place
+    from models.review import Review
+    from models import storage
 
 class HBNBCommand(cmd.Cmd):
-    """
-    Defines the HolbertonBnB command interpreter
-
-    Attributes:
-        prompt (str): The command prompt
-    """
     prompt = "(hbnb) "
-    __class_dict = {
-        "BaseModel": BaseModel
+    classes = [
+        "BaseModel", "User", "State", "City", "Amenity", "Place", "Review"
     }
 
     def do_quit(self, args):
